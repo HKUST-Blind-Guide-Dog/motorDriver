@@ -18,9 +18,9 @@
 int err;
 pthread_t task_handle_control;
 pthread_attr_t task_attr_control;
-#define SAVE_DATA_SIZE 2000 //control frequency = 
+#define SAVE_DATA_SIZE 600 //control frequency = 
 #define JOINT_SIZE 1
-int control_loop_delay_us = 2000;
+int control_loop_delay_us = 25000;
 float save_data_pos[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
 float save_data_vel[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
 float save_data_tor[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
@@ -50,6 +50,7 @@ void *control_task(void *arg)
     serial motorSerial;
     int motorId = 1;
     Motor motor(motorId, &motorSerial);
+    motor.setComSpeed(115200);
     Motor* motors[JOINT_SIZE];
     motors[0] = &motor;
     clock_nanosleep(CLOCK_REALTIME, 0, &ts, NULL);
@@ -64,7 +65,7 @@ void *control_task(void *arg)
             motor.setTarget(target_value[j], ControlMethod::TORQUE);
             */
             //velocity test
-            target_value[j] = 150 * (sin(2.0 * pi * i / SAVE_DATA_SIZE));
+            target_value[j] = 20 * (sin(2.0 * pi * i / SAVE_DATA_SIZE));
             motors[j]->setTarget(target_value[j], ControlMethod::VELOCITY);
             /*position test
             target_value[j] = 150 * (1.0 - cos(2.0 * pi * i / SAVE_DATA_SIZE));
@@ -214,4 +215,13 @@ int main()
     return 0;
 }
 
-
+// int main(){
+//     serial motorSerial;
+//     Motor motor(2, &motorSerial);
+//     motor.setComSpeed(2000000);
+//     while(1) {
+//         motor.setTarget(10, ControlMethod::VELOCITY);
+//         usleep(5000);
+//     }
+//     return 0;
+// }

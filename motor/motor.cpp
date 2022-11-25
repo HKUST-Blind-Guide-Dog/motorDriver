@@ -1,4 +1,5 @@
 #include "motor.h"
+#include <stdio.h>
 
 Motor::Motor(int id, serial* serialPort, char* com_id, int byte_size, int parity, int stop_bits, int baud_rate, int gearRatio, int encoderResolution)
 :zeroPosition(0),  gearRatio(gearRatio), id(id), encoderResolution(encoderResolution)
@@ -15,7 +16,7 @@ Motor::Motor(int id, serial* serialPort, char* com_id, int byte_size, int parity
         isConnected = 1;
     else 
         isConnected = 0;
-
+    printf("whether successful open the serial port: %d \n", isConnected);
     // setId(id);
     setTarget(0, ControlMethod::VELOCITY); // set the motor's initial state to be zero velocity
     setZero(position);
@@ -36,11 +37,19 @@ bool Motor::setId(int idValue)
     // serial communicatiom
     serial_crc16(commandBuffer, bufferSize - 2, &commandBuffer[11], &commandBuffer[12]); // write the corresponding crc
     serial_write(serialProtocol.serialPort, bufferSize, commandBuffer);
+    printf("set the motor id!! \n");
+    printf("command bffer: ");
+    for (int i = 0; i < bufferSize; i++) {
+        printf("%x", commandBuffer[i]);
+        printf("\t");
+    }
+    printf("\n");
     uint8_t dataBuffer[bufferSize];
     serial_read(serialProtocol.serialPort, bufferSize, dataBuffer);
     
     if (dataBuffer[10] == idValue) {
         id = idValue;
+        // printf("successfully set the ID!!! \n");
         return true;
     }else 
         return false;
@@ -80,12 +89,21 @@ void Motor::setComSpeed(int speed)
             break;
         
         default:
+            printf("the speed is not the available!! \n");
             break;
     }
 
     // serial communicatiom
     serial_crc16(commandBuffer, bufferSize - 2, &commandBuffer[11], &commandBuffer[12]); // write the corresponding crc
     serial_write(serialProtocol.serialPort, bufferSize, commandBuffer);
+    // for debugging
+    printf("change the motor speed!! \n");
+    printf("command bffer: ");
+    for (int i = 0; i < bufferSize; i++) {
+        printf("%x", commandBuffer[i]);
+        printf("\t");
+    }
+    printf("\n");
     uint8_t dataBuffer[bufferSize];
     serial_read(serialProtocol.serialPort, bufferSize, dataBuffer);
 }
@@ -101,28 +119,56 @@ void Motor::setTarget(int target, ControlMethod controlMode)
     // close loop control
     commandBuffer[3] = 0xA0 + controlMode; // specify whther it is torque/ vel/ position
     commandBuffer[4] = commandBuffer[5] = commandBuffer[6] = commandBuffer[9] = commandBuffer[10] = 0;
-    switch(controlMode) {
-        case ControlMethod::TORQUE:
-            int16_t tor = (int16_t)(tor * 100);
-            commandBuffer[7] = (uint8_t)(tor & 0xFF);
-            commandBuffer[8] = (uint8_t)((tor >> 8) & 0xF0);
-            break;
+    // switch(controlMode) {
+    //     case ControlMethod::TORQUE:
+    //         int16_t tor = (int16_t)(tor * 100);
+    //         commandBuffer[7] = (uint8_t)(tor & 0xFF);
+    //         commandBuffer[8] = (uint8_t)((tor >> 8) & 0xF0);
+    //         break;
 
-        case ControlMethod::VELOCITY:
-        case ControlMethod::POSITION:
-            int value = (int)(target * 100 * gearRatio);
-            commandBuffer[7] = (uint8_t)(value & 0xFF);
-            commandBuffer[8] = (uint8_t)((value >> 8) & 0xF0);
-            commandBuffer[9] = (uint8_t)((value >> 16) & 0xFF);
-            commandBuffer[10] = uint8_t((value >> 24) & 0xFF);
-            break;
+    //     case ControlMethod::VELOCITY:
+    //         int velValue = (int)(target * 100 * gearRatio);
+    //         commandBuffer[7] = (uint8_t)(velValue & 0xFF);
+    //         commandBuffer[8] = (uint8_t)((velValue >> 8) & 0xF0);
+    //         commandBuffer[9] = (uint8_t)((velValue >> 16) & 0xFF);
+    //         commandBuffer[10] = uint8_t((velValue >> 24) & 0xFF);
+    //         break;
+
+    //     case ControlMethod::POSITION:
+    //         int posValue = (int)(target * 100 * gearRatio);
+    //         commandBuffer[7] = (uint8_t)(posValue & 0xFF);
+    //         commandBuffer[8] = (uint8_t)((posValue >> 8) & 0xF0);
+    //         commandBuffer[9] = (uint8_t)((posValue >> 16) & 0xFF);
+    //         commandBuffer[10] = uint8_t((posValue >> 24) & 0xFF);
+    //         break;
             
-        default: break;
+    //     default: 
+    //         break;
+    // }
+
+    if (controlMode == ControlMethod::TORQUE) 
+    {
+        int16_t tor = (int16_t)(tor * 100);
+        commandBuffer[7] = (uint8_t)(tor & 0xFF);
+        commandBuffer[8] = (uint8_t)((tor >> 8) & 0xF0);
+    }else{
+        int value = (int)(target * 100 * gearRatio);
+        commandBuffer[7] = (uint8_t)(value & 0xFF);
+        commandBuffer[8] = (uint8_t)((value >> 8) & 0xF0);
+        commandBuffer[9] = (uint8_t)((value >> 16) & 0xFF);
+        commandBuffer[10] = uint8_t((value >> 24) & 0xFF);
     }
 
     // serial communicatiom
     serial_crc16(commandBuffer, bufferSize - 2, &commandBuffer[11], &commandBuffer[12]); // write the corresponding crc
     serial_write(serialProtocol.serialPort, bufferSize, commandBuffer);
+    // for debugging
+    printf("command bffer: ");
+    for (int i = 0; i < bufferSize; i++) {
+        printf("%x", commandBuffer[i]);
+        printf("\t");
+    }
+    printf("\n");
     uint8_t dataBuffer[bufferSize];
     serial_read(serialProtocol.serialPort, bufferSize, dataBuffer);
     
