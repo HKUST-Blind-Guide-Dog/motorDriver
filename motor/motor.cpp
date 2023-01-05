@@ -55,7 +55,7 @@ bool Motor::setId(int idValue)
         return false;
 }
 
-void Motor::setComSpeed(int speed)
+bool Motor::setComSpeed(int speed)
 {
     const int bufferSize = 5 + 8;
     uint8_t commandBuffer[bufferSize] = {0};
@@ -89,7 +89,8 @@ void Motor::setComSpeed(int speed)
             break;
         
         default:
-            printf("the speed is not the available!! \n");
+            printf("the speed is not the available for the motor!! \n");
+            return false;
             break;
     }
 
@@ -106,6 +107,23 @@ void Motor::setComSpeed(int speed)
     printf("\n");
     uint8_t dataBuffer[bufferSize];
     serial_read(serialProtocol.serialPort, bufferSize, dataBuffer);
+    
+    bool isSuccessful = true;
+    for (int i = 0; i < bufferSize; i++)
+    {
+        if (dataBuffer[i] != commandBuffer[i])
+        {
+            printf("change the motor com speed failed! \n");
+            isSuccessful = false;
+            return false;
+        }
+    }
+    int serialSetResult;
+    if (isSuccessful)
+        serialSetResult = serial_change_baudrate(serialProtocol.serialPort, speed);
+    if(!serialSetResult)
+        return true;
+
 }
 
 void Motor::setTarget(int target, ControlMethod controlMode) 
@@ -119,32 +137,6 @@ void Motor::setTarget(int target, ControlMethod controlMode)
     // close loop control
     commandBuffer[3] = 0xA0 + controlMode; // specify whther it is torque/ vel/ position
     commandBuffer[4] = commandBuffer[5] = commandBuffer[6] = commandBuffer[9] = commandBuffer[10] = 0;
-    // switch(controlMode) {
-    //     case ControlMethod::TORQUE:
-    //         int16_t tor = (int16_t)(tor * 100);
-    //         commandBuffer[7] = (uint8_t)(tor & 0xFF);
-    //         commandBuffer[8] = (uint8_t)((tor >> 8) & 0xF0);
-    //         break;
-
-    //     case ControlMethod::VELOCITY:
-    //         int velValue = (int)(target * 100 * gearRatio);
-    //         commandBuffer[7] = (uint8_t)(velValue & 0xFF);
-    //         commandBuffer[8] = (uint8_t)((velValue >> 8) & 0xF0);
-    //         commandBuffer[9] = (uint8_t)((velValue >> 16) & 0xFF);
-    //         commandBuffer[10] = uint8_t((velValue >> 24) & 0xFF);
-    //         break;
-
-    //     case ControlMethod::POSITION:
-    //         int posValue = (int)(target * 100 * gearRatio);
-    //         commandBuffer[7] = (uint8_t)(posValue & 0xFF);
-    //         commandBuffer[8] = (uint8_t)((posValue >> 8) & 0xF0);
-    //         commandBuffer[9] = (uint8_t)((posValue >> 16) & 0xFF);
-    //         commandBuffer[10] = uint8_t((posValue >> 24) & 0xFF);
-    //         break;
-            
-    //     default: 
-    //         break;
-    // }
 
     if (controlMode == ControlMethod::TORQUE) 
     {

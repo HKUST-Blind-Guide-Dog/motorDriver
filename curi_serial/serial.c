@@ -132,10 +132,15 @@ int serial_open(serial* serial_port, const char com_id[], int baud_rate, int byt
             cfsetispeed(&tty, B115200);
             cfsetospeed(&tty, B115200);
             break;
+        case 1000000:
+            cfsetispeed(&tty, B1000000);
+            cfsetospeed(&tty, B1000000);
+            printf("set the serial speed to 1M!!! \n");
+            break;
         case 2000000:
             cfsetispeed(&tty, B2000000);
             cfsetospeed(&tty, B2000000);
-            printf("set the serial speed to 3M!!! \n");
+            printf("set the serial speed to 2M!!! \n");
             break;
         case 3000000:
             cfsetispeed(&tty, B3000000);
@@ -155,6 +160,67 @@ int serial_open(serial* serial_port, const char com_id[], int baud_rate, int byt
 #endif
     serial_port->lock = 0;
     return 0;
+}
+
+/*
+ * function: serial_change_baudrate
+ *     change the baudrate of initialized serial port
+ * input: 
+ *     serial_port[serial *]: the serial struct pointor
+ *     target_baud_rate[int]: the target baud rate of the serial port communication
+ * output:
+ *     state[int]: success return 0 failed return negative number
+ */
+int serial_change_baudrate(serial* serial_port, int target_baud_rate)
+{
+    struct termios tty;
+
+    if (tcgetattr(serial_port->hCom, &tty) < 0)
+    {
+        printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+        return -1;
+    }
+
+    int rc1, rc2;
+    switch(target_baud_rate)
+    {
+        case 115200:
+            rc1 = cfsetispeed(&tty, B115200);
+            rc2 = cfsetospeed(&tty, B115200);
+            break;
+        case 1000000:
+            rc1 = cfsetispeed(&tty, B1000000);
+            rc2 = cfsetospeed(&tty, B1000000);
+            printf("set the serial speed to 1M!!! \n");
+            break;
+        case 1500000:
+            rc1 = cfsetispeed(&tty, B1500000);
+            rc2 = cfsetospeed(&tty, B1500000);
+            printf("set the serial speed to 1.5M!!! \n");
+            break;
+        case 2000000:
+            rc1 = cfsetispeed(&tty, B2000000);
+            rc2 = cfsetospeed(&tty, B2000000);
+            printf("set the serial speed to 2M!!! \n");
+            break;
+        case 3000000:
+            rc1 = cfsetispeed(&tty, B3000000);
+            rc2 = cfsetospeed(&tty, B3000000);
+            printf("set the serial speed to 3M!!! \n");
+            break;
+        default:
+            printf("baud rate do not suport!\n");
+            return -4;
+    }
+    if ((rc1 | rc2) != 0)
+    {
+        printf("Error %i from tcgetattr: %s after set speed\n", errno, strerror(errno));
+        return -1;
+    }
+
+    // after successfully change the baudrate, discard the content stored in the buffers
+    tcflush(serial_port->hCom, TCIFLUSH);
+    return 0; // successful return
 }
 
 /*

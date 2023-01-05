@@ -18,7 +18,7 @@
 int err;
 pthread_t task_handle_control;
 pthread_attr_t task_attr_control;
-#define SAVE_DATA_SIZE 600 //control frequency = 
+#define SAVE_DATA_SIZE 150 //control frequency = 
 #define JOINT_SIZE 1
 int control_loop_delay_us = 25000;
 float save_data_pos[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
@@ -50,7 +50,7 @@ void *control_task(void *arg)
     serial motorSerial;
     int motorId = 1;
     Motor motor(motorId, &motorSerial);
-    motor.setComSpeed(115200);
+    // motor.setComSpeed(1000000);
     Motor* motors[JOINT_SIZE];
     motors[0] = &motor;
     clock_nanosleep(CLOCK_REALTIME, 0, &ts, NULL);
@@ -217,11 +217,11 @@ int main()
 
 // int main(){
 //     serial motorSerial;
-//     Motor motor(2, &motorSerial);
-//     motor.setComSpeed(2000000);
+//     Motor motor(5, &motorSerial);
+//     motor.setComSpeed(115200);
 //     while(1) {
 //         motor.setTarget(10, ControlMethod::VELOCITY);
-//         usleep(5000);
+//         usleep(20000);
 //     }
 //     return 0;
 // }

@@ -97,6 +97,17 @@ extern "C" {
 int serial_open(serial* serial_port, const char com_id[], int baud_rate, int byte_size, int parity, int stop_bits);
 
 /*
+ * function: serial_change_baudrate
+ *     change the baudrate of initialized serial port
+ * input: 
+ *     serial_port[serial *]: the serial struct pointor
+ *     target_baud_rate[int]: the target baud rate of the serial port communication
+ * output:
+ *     state[int]: success return 0 failed return negative number
+ */
+int serial_change_baudrate(serial* serial_port, int target_baud_rate);
+
+/*
  * function: serial_write
  *     Write data to the serial port
  * input: 

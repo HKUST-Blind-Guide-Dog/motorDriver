@@ -23,7 +23,7 @@ struct SerialInfo{
 class Motor{
     public:
         Motor(int id, serial* serialPort, char* com_id = "/dev/ttyUSB0", int byte_size = 8, 
-        int parity = 0, int stop_bits = 1, int baud_rate = 115200, int gearRatio = 9, int encoderResolution = 16384);
+        int parity = 0, int stop_bits = 1, int baud_rate = 1000000, int gearRatio = 9, int encoderResolution = 16384);
 
         ~Motor() { serial_close(serialProtocol.serialPort); }
 
@@ -33,7 +33,7 @@ class Motor{
 
         bool setId(int idValue);
 
-        void setComSpeed(int speed);
+        bool setComSpeed(int speed);
 
         //accesor
         bool isMotorConnected() const { return isConnected; }
