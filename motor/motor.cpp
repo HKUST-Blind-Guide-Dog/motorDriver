@@ -1,5 +1,5 @@
 #include "motor.h"
-#include <stdio.h>
+#include <iostream>
 
 Motor::Motor(int id, serial* serialPort, char* com_id, int byte_size, int parity, int stop_bits, int baud_rate, int gearRatio, int encoderResolution)
 :zeroPosition(0),  gearRatio(gearRatio), id(id), encoderResolution(encoderResolution)
@@ -37,7 +37,8 @@ bool Motor::setId(int idValue)
     // serial communicatiom
     serial_crc16(commandBuffer, bufferSize - 2, &commandBuffer[11], &commandBuffer[12]); // write the corresponding crc
     serial_write(serialProtocol.serialPort, bufferSize, commandBuffer);
-    printf("set the motor id!! \n");
+    printf("set the motor id to %d \n", idValue);
+    //for debugging
     printf("command bffer: ");
     for (int i = 0; i < bufferSize; i++) {
         printf("%x", commandBuffer[i]);
@@ -108,22 +109,11 @@ bool Motor::setComSpeed(int speed)
     uint8_t dataBuffer[bufferSize];
     serial_read(serialProtocol.serialPort, bufferSize, dataBuffer);
     
-    bool isSuccessful = true;
-    for (int i = 0; i < bufferSize; i++)
-    {
-        if (dataBuffer[i] != commandBuffer[i])
-        {
-            printf("change the motor com speed failed! \n");
-            isSuccessful = false;
-            return false;
-        }
-    }
-    int serialSetResult;
-    if (isSuccessful)
-        serialSetResult = serial_change_baudrate(serialProtocol.serialPort, speed);
-    if(!serialSetResult)
-        return true;
-
+    int serialSetResult = serial_change_baudrate(serialProtocol.serialPort, speed);
+    if (!serialSetResult)
+        serialProtocol.baud_rate = speed;
+    printf("current speed: %d \n", serialProtocol.baud_rate);
+    return !serialSetResult ? true : false;
 }
 
 void Motor::setTarget(int target, ControlMethod controlMode) 

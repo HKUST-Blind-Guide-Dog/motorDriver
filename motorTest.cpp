@@ -18,9 +18,9 @@
 int err;
 pthread_t task_handle_control;
 pthread_attr_t task_attr_control;
-#define SAVE_DATA_SIZE 1500 //control frequency = 
+#define SAVE_DATA_SIZE 150 //control frequency = 
 #define JOINT_SIZE 1
-int control_loop_delay_us = 2000;
+int control_loop_delay_us = 25000;
 float save_data_pos[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
 float save_data_vel[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
 float save_data_tor[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
@@ -37,6 +37,7 @@ float target_value[JOINT_SIZE] = {0};
 void *control_task(void *arg)
 {  
     printf("JOINT_SIZE: %d\n", JOINT_SIZE);
+    usleep(2000000);
     struct timeval t;
     int t_max = 0, t_min = 1000000, t_sum = 0;
     int tt_max = 0, tt_min = 1000000, tt_sum = 0;
@@ -47,18 +48,24 @@ void *control_task(void *arg)
     struct timespec ts;
     ts.tv_sec = 0;
     ts.tv_nsec = control_loop_delay_us * 1000L;
-    serial motorSerial;
+    serial motorSerial0, motorSerial1;
     int motorId = 1;
-    Motor motor(motorId, &motorSerial);
-    // motor.setComSpeed(1000000);
+    Motor motor(motorId, &motorSerial0);
+    // Motor motor1(2, &motorSerial0, "/dev/ttyCH9344USB0");
+    // Motor motor2(1, &motorSerial1);
     Motor* motors[JOINT_SIZE];
     motors[0] = &motor;
+    // motors[0] = &motor1;
+    // motors[1] = &motor2;
     clock_nanosleep(CLOCK_REALTIME, 0, &ts, NULL);
     gettimeofday(&t, NULL);
     t00 = t.tv_sec * 1000000 + t.tv_usec;
 
     for (i = 1; i < SAVE_DATA_SIZE; ++ i) {
         //printf("num of set: %d \n",i);
+        gettimeofday(&t, NULL);
+        t0 = t.tv_sec * 1000000 + t.tv_usec;
+
         for(j = 0; j < JOINT_SIZE; j++){
             /* torque test
             target_value[j] = 0;
@@ -74,8 +81,6 @@ void *control_task(void *arg)
            save_data_target_value[i][j] = target_value[j]; 
         }
 
-        gettimeofday(&t, NULL);
-        t0 = t.tv_sec * 1000000 + t.tv_usec;
         //take the data from motors
         for(j = 0; j < JOINT_SIZE; j++){
             save_data_pos[i][j] = motors[j]->getCurPos();
@@ -115,7 +120,7 @@ void *control_task(void *arg)
             save_data_cost[i] = save_data_time[i] - save_data_time[i-1];
         }
     }
-
+    motor.setComSpeed(2000000);
     printf("PDO max time %d, min time %d, ave time %d us. [%d]\n", t_max, t_min, t_sum / i, i);
     printf("Task max time %d, min time %d, ave time %d us. [%d]\n", tt_max, tt_min, tt_sum / i, i);
     printf("create file for saving data \n");
@@ -217,11 +222,11 @@ int main()
 
 // int main(){
 //     serial motorSerial;
-//     Motor motor(5, &motorSerial);
-//     motor.setComSpeed(115200);
-//     while(1) {
-//         motor.setTarget(10, ControlMethod::VELOCITY);
-//         usleep(20000);
-//     }
+//     Motor motor(1, &motorSerial);
+//     motor.setComSpeed(2000000);
+//     // while(1) {
+//     //     motor.setTarget(10, ControlMethod::VELOCITY);
+//     //     usleep(20000);
+//     // }
 //     return 0;
 // }
