@@ -142,6 +142,11 @@ int serial_open(serial* serial_port, const char com_id[], int baud_rate, int byt
             cfsetospeed(&tty, B2000000);
             printf("set the serial speed to 2M!!! \n");
             break;
+        case 2500000:
+            cfsetispeed(&tty, B2500000);
+            cfsetospeed(&tty, B2500000);
+            printf("set the serial speed to 2.5M!!! \n");
+            break;
         case 3000000:
             cfsetispeed(&tty, B3000000);
             cfsetospeed(&tty, B3000000);

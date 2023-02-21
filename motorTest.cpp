@@ -18,9 +18,9 @@
 int err;
 pthread_t task_handle_control;
 pthread_attr_t task_attr_control;
-#define SAVE_DATA_SIZE 150 //control frequency = 
+#define SAVE_DATA_SIZE 1500 //control frequency = 
 #define JOINT_SIZE 1
-int control_loop_delay_us = 25000;
+int control_loop_delay_us = 2000;
 float save_data_pos[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
 float save_data_vel[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
 float save_data_tor[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
