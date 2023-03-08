@@ -18,9 +18,9 @@
 int err;
 pthread_t task_handle_control;
 pthread_attr_t task_attr_control;
-#define SAVE_DATA_SIZE 150 //control frequency = 
+#define SAVE_DATA_SIZE 1500 //control frequency = 
 #define JOINT_SIZE 1
-int control_loop_delay_us = 25000;
+int control_loop_delay_us = 2500;
 float save_data_pos[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
 float save_data_vel[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
 float save_data_tor[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
@@ -37,7 +37,7 @@ float target_value[JOINT_SIZE] = {0};
 void *control_task(void *arg)
 {  
     printf("JOINT_SIZE: %d\n", JOINT_SIZE);
-    usleep(2000000);
+    // usleep(2000000);
     struct timeval t;
     int t_max = 0, t_min = 1000000, t_sum = 0;
     int tt_max = 0, tt_min = 1000000, tt_sum = 0;
@@ -72,7 +72,7 @@ void *control_task(void *arg)
             motor.setTarget(target_value[j], ControlMethod::TORQUE);
             */
             //velocity test
-            target_value[j] = 20 * (sin(2.0 * pi * i / SAVE_DATA_SIZE));
+            target_value[j] = 2 * (sin(2.0 * pi * i / SAVE_DATA_SIZE));
             motors[j]->setTarget(target_value[j], ControlMethod::VELOCITY);
             /*position test
             target_value[j] = 150 * (1.0 - cos(2.0 * pi * i / SAVE_DATA_SIZE));

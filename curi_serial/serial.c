@@ -208,6 +208,11 @@ int serial_change_baudrate(serial* serial_port, int target_baud_rate)
             rc2 = cfsetospeed(&tty, B2000000);
             printf("set the serial speed to 2M!!! \n");
             break;
+        case 2500000:
+        rc1 = cfsetispeed(&tty, B2500000);
+        rc2 = cfsetospeed(&tty, B2500000);
+        printf("set the serial speed to 2.5M!!! \n");
+        break;
         case 3000000:
             rc1 = cfsetispeed(&tty, B3000000);
             rc2 = cfsetospeed(&tty, B3000000);

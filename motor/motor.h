@@ -4,6 +4,7 @@
 #include "../curi_serial/serial.h"
 
 // char* comId = "/dev/ttyUSB0";
+#define IS_DEBUG 1
 
 enum ControlMethod{
     POSITION = 3,
@@ -24,8 +25,8 @@ class Motor{
     public:
         Motor() = default;
 
-        Motor(int id, serial* serialPort, char* com_id = "/dev/ttyCH9344USB0", int byte_size = 8, 
-        int parity = 0, int stop_bits = 1, int baud_rate = 115200, int gearRatio = 9, int encoderResolution = 16384);
+        Motor(int id, serial* serialPort, char* com_id = "/dev/ttyCH9344USB7", int byte_size = 8, 
+        int parity = 0, int stop_bits = 1, int baud_rate = 2500000, int gearRatio = 9, int encoderResolution = 16384);
 
         ~Motor() { serial_close(serialProtocol.serialPort); }
 

@@ -39,18 +39,21 @@ bool Motor::setId(int idValue)
     serial_write(serialProtocol.serialPort, bufferSize, commandBuffer);
     printf("set the motor id to %d \n", idValue);
     //for debugging
-    printf("command bffer: ");
-    for (int i = 0; i < bufferSize; i++) {
-        printf("%x", commandBuffer[i]);
-        printf("\t");
+    if (IS_DEBUG){
+        printf("command bffer: ");
+        for (int i = 0; i < bufferSize; i++) {
+            printf("%x", commandBuffer[i]);
+            printf("\t");
+        }
+        printf("\n");
     }
-    printf("\n");
     uint8_t dataBuffer[bufferSize];
     serial_read(serialProtocol.serialPort, bufferSize, dataBuffer);
     
     if (dataBuffer[10] == idValue) {
         id = idValue;
-        // printf("successfully set the ID!!! \n");
+        if (IS_DEBUG)
+            printf("successfully set the ID!!! \n");
         return true;
     }else 
         return false;
@@ -85,7 +88,7 @@ bool Motor::setComSpeed(int speed)
             commandBuffer[10] = 0x03;
             break;
 
-        case 2000000:
+        case 2500000:
             commandBuffer[10] = 0x04;
             break;
         
@@ -99,17 +102,27 @@ bool Motor::setComSpeed(int speed)
     serial_crc16(commandBuffer, bufferSize - 2, &commandBuffer[11], &commandBuffer[12]); // write the corresponding crc
     serial_write(serialProtocol.serialPort, bufferSize, commandBuffer);
     // for debugging
-    printf("change the motor speed!! \n");
-    printf("command bffer: ");
-    for (int i = 0; i < bufferSize; i++) {
-        printf("%x", commandBuffer[i]);
-        printf("\t");
+    if (IS_DEBUG){
+        printf("change the motor speed!! \n");
+        printf("command bffer: ");
+        for (int i = 0; i < bufferSize; i++) {
+            printf("%x", commandBuffer[i]);
+            printf("\t");
+        }
+        printf("\n");
     }
-    printf("\n");
-    uint8_t dataBuffer[bufferSize];
+    uint8_t dataBuffer[bufferSize] = {0};
     serial_read(serialProtocol.serialPort, bufferSize, dataBuffer);
-    
-    int serialSetResult = serial_change_baudrate(serialProtocol.serialPort, speed);
+    bool isMotorSet = 0;
+    for (int i = 0; i < bufferSize; i++)
+        if (dataBuffer[i] != 0) {
+            isMotorSet = 1;
+            break;
+        }
+
+    bool serialSetResult = 0;
+    if (isMotorSet)
+        serialSetResult = serial_change_baudrate(serialProtocol.serialPort, speed);
     if (!serialSetResult)
         serialProtocol.baud_rate = speed;
     printf("current speed: %d \n", serialProtocol.baud_rate);
@@ -132,11 +145,11 @@ void Motor::setTarget(int target, ControlMethod controlMode)
     {
         int16_t tor = (int16_t)(tor * 100);
         commandBuffer[7] = (uint8_t)(tor & 0xFF);
-        commandBuffer[8] = (uint8_t)((tor >> 8) & 0xF0);
+        commandBuffer[8] = (uint8_t)((tor >> 8) & 0xFF);
     }else{
         int value = (int)(target * 100 * gearRatio);
         commandBuffer[7] = (uint8_t)(value & 0xFF);
-        commandBuffer[8] = (uint8_t)((value >> 8) & 0xF0);
+        commandBuffer[8] = (uint8_t)((value >> 8) & 0xFF);
         commandBuffer[9] = (uint8_t)((value >> 16) & 0xFF);
         commandBuffer[10] = uint8_t((value >> 24) & 0xFF);
     }
@@ -145,12 +158,14 @@ void Motor::setTarget(int target, ControlMethod controlMode)
     serial_crc16(commandBuffer, bufferSize - 2, &commandBuffer[11], &commandBuffer[12]); // write the corresponding crc
     serial_write(serialProtocol.serialPort, bufferSize, commandBuffer);
     // for debugging
-    printf("command bffer: ");
-    for (int i = 0; i < bufferSize; i++) {
-        printf("%x", commandBuffer[i]);
-        printf("\t");
+    if (IS_DEBUG) {
+        printf("command bffer: ");
+        for (int i = 0; i < bufferSize; i++) {
+            printf("%x", commandBuffer[i]);
+            printf("\t");
+        }
+        printf("\n");
     }
-    printf("\n");
     uint8_t dataBuffer[bufferSize];
     serial_read(serialProtocol.serialPort, bufferSize, dataBuffer);
     
