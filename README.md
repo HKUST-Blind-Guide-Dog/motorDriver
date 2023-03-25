@@ -19,8 +19,9 @@
  - Secondly type the gnuplot to visualize these collected data
  - Each column stores one specific type of data for different timestamp, eg. plot "save_data_rt.txt" u 2 with line
  - Data type
+    
     |Type | Column Number|
-    |:   -----|:-----|
+    |:-----|:-----|
     |Sequence| 0|
     |Communication TIme| 1|
     |Time Variation of Communication | 2|

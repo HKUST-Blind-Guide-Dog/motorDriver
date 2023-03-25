@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/motorsTest.dir/curi_serial/serial.c.o CMakeFiles/motorsTest.dir/motorTest.cpp.o CMakeFiles/motorsTest.dir/motor/motor.cpp.o  -o motorsTest  -lm -lpthread -lrt -Wall 

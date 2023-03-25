@@ -25,7 +25,7 @@ class Motor{
     public:
         Motor() = default;
 
-        Motor(int id, serial* serialPort, char* com_id = "/dev/ttyCH9344USB7", int byte_size = 8, 
+        Motor(int id, serial* serialPort, char* com_id = "/dev/ttyCH9344USB3", int byte_size = 8, 
         int parity = 0, int stop_bits = 1, int baud_rate = 2500000, int gearRatio = 9, int encoderResolution = 16384);
 
         ~Motor() { serial_close(serialProtocol.serialPort); }
@@ -37,6 +37,8 @@ class Motor{
         bool setId(int idValue);
 
         bool setComSpeed(int speed);
+
+        bool readMOtorData();
 
         //accesor
         bool isMotorConnected() const { return isConnected; }

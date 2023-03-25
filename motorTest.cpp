@@ -20,7 +20,7 @@ pthread_t task_handle_control;
 pthread_attr_t task_attr_control;
 #define SAVE_DATA_SIZE 1500 //control frequency = 
 #define JOINT_SIZE 1
-int control_loop_delay_us = 2500;
+int control_loop_delay_us = 1300;
 float save_data_pos[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
 float save_data_vel[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
 float save_data_tor[SAVE_DATA_SIZE][JOINT_SIZE] = {0};
@@ -51,6 +51,7 @@ void *control_task(void *arg)
     serial motorSerial0, motorSerial1;
     int motorId = 1;
     Motor motor(motorId, &motorSerial0);
+    motor.setId(1);
     // Motor motor1(2, &motorSerial0, "/dev/ttyCH9344USB0");
     // Motor motor2(1, &motorSerial1);
     Motor* motors[JOINT_SIZE];
@@ -120,7 +121,6 @@ void *control_task(void *arg)
             save_data_cost[i] = save_data_time[i] - save_data_time[i-1];
         }
     }
-    motor.setComSpeed(2000000);
     printf("PDO max time %d, min time %d, ave time %d us. [%d]\n", t_max, t_min, t_sum / i, i);
     printf("Task max time %d, min time %d, ave time %d us. [%d]\n", tt_max, tt_min, tt_sum / i, i);
     printf("create file for saving data \n");
@@ -190,43 +190,45 @@ int creat_rt_thread(pthread_t *task_handle, pthread_attr_t *task_attr, int prior
     return 0;
 }
 
-int main()
-{
-    if (mlockall(MCL_CURRENT|MCL_FUTURE) == -1) {
-        printf("mlockall failed: %m\n");
-        exit(-2);
-    }
-    // Turn off malloc trimming.
-    mallopt(M_TRIM_THRESHOLD, -1);
-    //d Turn off mmap usage. 
-    mallopt(M_MMAP_MAX, 0);
+// int main()
+// {
+//     if (mlockall(MCL_CURRENT|MCL_FUTURE) == -1) {
+//         printf("mlockall failed: %m\n");
+//         exit(-2);
+//     }
+//     // Turn off malloc trimming.
+//     mallopt(M_TRIM_THRESHOLD, -1);
+//     //d Turn off mmap usage. 
+//     mallopt(M_MMAP_MAX, 0);
 
-    // create thread for rt control
-    if (creat_rt_thread(&task_handle_control, &task_attr_control, 90, control_task)) {
-        if (pthread_join(task_handle_control, NULL))
-            printf("join pthread failed: %m\n");
-        printf("Error: Cannot create watchdog thread.\n");
-        return -7;
-    } else {
-        printf("RT pdo start.\n");
-        while (1)
-            sched_yield();
+//     // create thread for rt control
+//     if (creat_rt_thread(&task_handle_control, &task_attr_control, 90, control_task)) {
+//         if (pthread_join(task_handle_control, NULL))
+//             printf("join pthread failed: %m\n");
+//         printf("Error: Cannot create watchdog thread.\n");
+//         return -7;
+//     } else {
+//         printf("RT pdo start.\n");
+//         while (1)
+//             sched_yield();
             
-        if (pthread_join(task_handle_control, NULL))
-            printf("join pthread failed: %m\n");
-    } 
+//         if (pthread_join(task_handle_control, NULL))
+//             printf("join pthread failed: %m\n");
+//     } 
 
-    printf("End program\n");
-    return 0;
-}
-
-// int main(){
-//     serial motorSerial;
-//     Motor motor(1, &motorSerial);
-//     motor.setComSpeed(2000000);
-//     // while(1) {
-//     //     motor.setTarget(10, ControlMethod::VELOCITY);
-//     //     usleep(20000);
-//     // }
+//     printf("End program\n");
 //     return 0;
 // }
+
+int main(){
+    serial motorSerial;
+    Motor motor(1, &motorSerial);
+    while(1){
+        motor.readMOtorData(); // cheeck the command and data buffer
+        usleep(0.5 * 1000000);  
+    }// while(1) {
+    //     motor.setTarget(1, ControlMethod::POSITION);
+    //     usleep(20000);
+    // }
+    return 0;
+}

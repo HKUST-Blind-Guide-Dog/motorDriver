@@ -17,8 +17,13 @@ Motor::Motor(int id, serial* serialPort, char* com_id, int byte_size, int parity
     else 
         isConnected = 0;
     printf("whether successful open the serial port: %d \n", isConnected);
-    // setId(id);
     setTarget(0, ControlMethod::VELOCITY); // set the motor's initial state to be zero velocity
+    int initialzeCounter = 0;
+    while(!readMOtorData()){
+        initialzeCounter++;
+    }
+    printf("The number needed to initialize the serial port is %d!", initialzeCounter);
+    // setId(id);
     setZero(position);
 }
 
@@ -147,7 +152,7 @@ void Motor::setTarget(int target, ControlMethod controlMode)
         commandBuffer[7] = (uint8_t)(tor & 0xFF);
         commandBuffer[8] = (uint8_t)((tor >> 8) & 0xFF);
     }else{
-        int value = (int)(target * 100 * gearRatio);
+        int value = (int)(target * 100);
         commandBuffer[7] = (uint8_t)(value & 0xFF);
         commandBuffer[8] = (uint8_t)((value >> 8) & 0xFF);
         commandBuffer[9] = (uint8_t)((value >> 16) & 0xFF);
@@ -168,10 +173,56 @@ void Motor::setTarget(int target, ControlMethod controlMode)
     }
     uint8_t dataBuffer[bufferSize];
     serial_read(serialProtocol.serialPort, bufferSize, dataBuffer);
+
+    if (IS_DEBUG) {
+        printf("data buffer: ");
+        for (int i = 0; i < bufferSize; i++)
+            printf("%x \t", dataBuffer[i]);
+        printf("\n");
+    }
     
     // decoding the data
-    torque = (int16_t)(dataBuffer[6] << 8 + dataBuffer[5]) * 33.0 / 2048;
-    velocity = (int16_t)(dataBuffer[8] << 8 + dataBuffer[7]) * 1.0 / gearRatio;
-    position = (int16_t)(dataBuffer[10] << 8 + dataBuffer[9]) * 360.0 / gearRatio / encoderResolution;
+    // torque = (int16_t)(dataBuffer[6] << 8 + dataBuffer[5]) * 33.0 / 2048;
+    // velocity = (int16_t)(dataBuffer[8] << 8 + dataBuffer[7]) * 1.0 / gearRatio;
+    // position = (int16_t)(dataBuffer[10] << 8 + dataBuffer[9]) * 360.0 / gearRatio / encoderResolution;
+    // strictly follow the protocol description to decode
+    torque = (int16_t)(dataBuffer[6] << 8 + dataBuffer[5]) / 100;
+    velocity = (int16_t)(dataBuffer[8] << 8 + dataBuffer[7]) * 1.0;
+    position = (int16_t)(dataBuffer[10] << 8 + dataBuffer[9]) * 1.0;
+}
+
+bool Motor::readMOtorData()
+{
+    const int bufferSize = 5 + 8;
+    uint8_t commandBuffer[bufferSize] = {0};
+    commandBuffer[0] = 0x3E; // msg header
+    commandBuffer[1] = this->id;
+    commandBuffer[2] = 8; // data size
+
+    // send zero torque command to the motor
+    commandBuffer[3] = 0xA1;
+    // commandBuffer[3] = 0xA3;
+    // commandBuffer[4] = 0x64;
+    for (int i = 4; i < 11; i++)
+        commandBuffer[i] = 0x00;
+    serial_crc16(commandBuffer, bufferSize - 2, &commandBuffer[11], &commandBuffer[12]); // write the corresponding crc
+    serial_write(serialProtocol.serialPort, bufferSize, commandBuffer);
+    uint8_t data[bufferSize] = {0};
+    int success = serial_read(this->serialProtocol.serialPort, bufferSize, data);
+    if (IS_DEBUG) {
+        printf("command buffer: ");
+        for (int i = 0; i < bufferSize; i++) 
+            printf("%x \t", commandBuffer[i]);
+        printf("\n");
+        printf("data buffer: ");
+        for (int i = 0; i < bufferSize; i++) 
+            printf("%x \t", data[i]);
+        printf("\n");   
+    }
+    torque = (int16_t)(data[6] << 8 + data[5]) / 100;
+    velocity = (int16_t)(data[8] << 8 + data[7]) * 1.0;
+    position = (int16_t)(data[10] << 8 + data[9]) * 1.0;
+    printf("decoded data: \n torque:%d, velocity:%d, position:%d \n", torque, velocity, position);
+    return (success == 0) ? true : false;
 }
 
