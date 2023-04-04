@@ -32,7 +32,7 @@ class Motor{
 
         void setZero(float zeroPosition) { this->zeroPosition = zeroPosition; }
 
-        void setTarget(int target, ControlMethod controlMode);
+        void setTarget(float target, ControlMethod controlMode);
 
         bool setId(int idValue);
 

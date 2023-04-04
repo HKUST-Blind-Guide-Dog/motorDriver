@@ -134,7 +134,7 @@ bool Motor::setComSpeed(int speed)
     return !serialSetResult ? true : false;
 }
 
-void Motor::setTarget(int target, ControlMethod controlMode) 
+void Motor::setTarget(float target, ControlMethod controlMode) 
 {   
     const int bufferSize = 5 + 8;
     uint8_t commandBuffer[bufferSize] = {0};
@@ -222,7 +222,7 @@ bool Motor::readMOtorData()
     torque = (int16_t)(data[6] << 8 + data[5]) / 100;
     velocity = (int16_t)(data[8] << 8 + data[7]) * 1.0;
     position = (int16_t)(data[10] << 8 + data[9]) * 1.0;
-    printf("decoded data: \n torque:%d, velocity:%d, position:%d \n", torque, velocity, position);
+    printf("decoded data: \n torque:%f, velocity:%f, position:%f \n", torque, velocity, position);
     return (success == 0) ? true : false;
 }
 
