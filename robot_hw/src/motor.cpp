@@ -42,9 +42,9 @@ bool Motor::setId(int idValue)
     // serial communicatiom
     serial_crc16(commandBuffer, bufferSize - 2, &commandBuffer[11], &commandBuffer[12]); // write the corresponding crc
     serial_write(serialProtocol.serialPort, bufferSize, commandBuffer);
-    printf("set the motor id to %d \n", idValue);
     //for debugging
     if (IS_DEBUG){
+        printf("set the motor id to %d \n", idValue);
         printf("command bffer: ");
         for (int i = 0; i < bufferSize; i++) {
             printf("%x", commandBuffer[i]);
@@ -222,7 +222,8 @@ bool Motor::readMOtorData()
     torque = (int16_t)(data[6] << 8 + data[5]) / 100;
     velocity = (int16_t)(data[8] << 8 + data[7]) * 1.0;
     position = (int16_t)(data[10] << 8 + data[9]) * 1.0;
-    printf("decoded data: \n torque:%f, velocity:%f, position:%f \n", torque, velocity, position);
+    if (IS_DEBUG)
+        printf("decoded data: \n torque:%f, velocity:%f, position:%f \n", torque, velocity, position);
     return (success == 0) ? true : false;
 }
 

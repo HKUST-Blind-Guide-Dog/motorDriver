@@ -1,6 +1,6 @@
 <launch>
 
-    <node name="robot_hw" pkg="robot_hw" type="robot_hw_appolo">
+    <node name="robot_hw" pkg="robot_hw" type="robot_hw_appolo" output="screen">
         <param name="update_freqency" type="int" value="800"/>
         <param name="error_threshold" type="double" value="0.00125"/>
     </node>

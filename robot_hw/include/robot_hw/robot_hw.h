@@ -21,8 +21,8 @@ const string PORT_PREFIX = "/dev/ttyCH9344USB";
  */
 
 enum MOTOR_LAYOUT{
-    FL = 0,
-    FR = 1,
+    FL = 1,
+    FR = 0,
     BR = 2,
     BL = 3
 };
