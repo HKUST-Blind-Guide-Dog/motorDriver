@@ -223,10 +223,13 @@ int creat_rt_thread(pthread_t *task_handle, pthread_attr_t *task_attr, int prior
 int main(){
     serial motorSerial;
     Motor motor(1, &motorSerial);
+    // motor.setZero();
     while(1){
+        
         motor.readMOtorData(); // cheeck the command and data buffer
-        usleep(0.5 * 1000000);  
-    }// while(1) {
+        usleep(0.001 * 1000000);  
+    }
+    // while(1) {
     //     motor.setTarget(1, ControlMethod::POSITION);
     //     usleep(20000);
     // }

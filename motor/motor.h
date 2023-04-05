@@ -5,6 +5,7 @@
 
 // char* comId = "/dev/ttyUSB0";
 #define IS_DEBUG 1
+#define bufferSize (5 + 8) 
 
 enum ControlMethod{
     POSITION = 3,
@@ -25,12 +26,12 @@ class Motor{
     public:
         Motor() = default;
 
-        Motor(int id, serial* serialPort, char* com_id = "/dev/ttyCH9344USB3", int byte_size = 8, 
+        Motor(int id, serial* serialPort, char* com_id = "/dev/ttyCH9344USB1", int byte_size = 8, 
         int parity = 0, int stop_bits = 1, int baud_rate = 2500000, int gearRatio = 9, int encoderResolution = 16384);
 
         ~Motor() { serial_close(serialProtocol.serialPort); }
 
-        void setZero(float zeroPosition) { this->zeroPosition = zeroPosition; }
+        void setZero();
 
         void setTarget(float target, ControlMethod controlMode);
 
@@ -59,6 +60,9 @@ class Motor{
         // for serial communication
         SerialInfo serialProtocol;
         int id;
+        
+        uint8_t commandBuffer[bufferSize];
+        uint8_t dataBuffer[bufferSize];
 };
 
 #endif // end of the ifndef
